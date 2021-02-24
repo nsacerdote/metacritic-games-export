@@ -1,0 +1,1 @@
+# metacritic-games-export
