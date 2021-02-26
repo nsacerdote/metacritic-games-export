@@ -14,11 +14,7 @@ function run() {
 
 function getGames(year) {
    console.log(`Getting Games for ${year}`);
-   return scrapeMetacritic()
-      .then(result => result.data.games)
-      .then(games =>
-         games.map(g => ({ ...g, releaseDate: transformDate(g.releaseDate) }))
-      );
+   return scrapeMetacritic().then(result => result.data.games);
 
    function scrapeMetacritic() {
       return scrapeIt(
@@ -28,9 +24,17 @@ function getGames(year) {
                listItem: 'td.clamp-summary-wrap',
                data: {
                   title: 'a.title>h3',
-                  releaseDate: '.clamp-details>span',
+                  releaseDate: {
+                     selector: '.clamp-details>span',
+                     convert: value => transformDate(value)
+                  },
                   metascore: '.clamp-metascore .metascore_w',
-                  userScore: '.clamp-userscore .metascore_w'
+                  userScore: '.clamp-userscore .metascore_w',
+                  link: {
+                     selector: 'a.title',
+                     attr: 'href',
+                     convert: value => `https://www.metacritic.com${value}`
+                  }
                }
             }
          }
@@ -44,7 +48,8 @@ function createXls(results) {
       title: 'Title',
       releaseDate: 'Release Date',
       metascore: 'Metascore',
-      userScore: 'User Score'
+      userScore: 'User Score',
+      link: 'Link'
    };
    results.reverse().forEach((r, index) => {
       const workSheet = XLSX.utils.json_to_sheet([headers, ...r], {
